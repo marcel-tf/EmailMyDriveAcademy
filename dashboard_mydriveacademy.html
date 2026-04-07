@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Campaign Performance Dashboard - MyDrive Academy</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            color: white;
+            padding: 30px 40px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 32px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .filters-section {
+            background: #f8f9fa;
+            padding: 25px 40px;
+            border-bottom: 2px solid #e9ecef;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .filter-group label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #2c3e50;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .filter-group select {
+            padding: 10px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+            transition: border-color 0.3s ease;
+        }
+
+        .filter-group select:focus {
+            outline: none;
+            border-color: #10b981;
+        }
+
+        .filter-group select:hover {
+            border-color: #10b981;
+        }
+
+        .clear-filters-btn {
+            padding: 10px 25px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            margin-top: 20px;
+        }
+
+        .clear-filters-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+        }
+
+        .dashboard-content {
+            padding: 40px;
+        }
+
+        .kpi-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .kpi-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .kpi-card.primary {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .kpi-card.success {
+            background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+            color: white;
+        }
+
+        .kpi-card.warning {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            color: white;
+        }
+
+        .kpi-card.info {
+            background: linear-gradient(135deg, #34d399 0%, #6ee7b7 100%);
+            color: #064e3b;
+        }
+
+        .kpi-label {
+            font-size: 13px;
+            font-weight: 500;
+            opacity: 0.9;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .kpi-value {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .kpi-subtitle {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .charts-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .chart-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .chart-card h3 {
+            color: #2c3e50;
+            font-size: 18px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .kpi-card.clickable {
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .kpi-card.clickable:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        @media (max-width: 768px) {
+            .charts-section {
+                grid-template-columns: 1fr;
+            }
+
+            .dashboard-content {
+                padding: 20px;
+            }
+
+            .filters-section {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Email Campaign Performance Dashboard</h1>
+            <p>MyDrive Academy Campaign Analytics | February - April 2026</p>
+        </header>
+
+        <div class="filters-section">
+            <div class="filter-group">
+                <label for="campaignFilter">Campaign</label>
+                <select id="campaignFilter">
+                    <option value="">All Campaigns</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="dateFilter">Date</label>
+                <select id="dateFilter">
+                    <option value="">All Dates</option>
+                </select>
+            </div>
+            <button class="clear-filters-btn" onclick="clearFilters()">Clear Filters</button>
+        </div>
+
+        <div class="dashboard-content">
+            <div class="kpi-section">
+                <div class="kpi-card primary">
+                    <div class="kpi-label">Total Leads</div>
+                    <div class="kpi-value" id="totalLeads">0</div>
+                    <div class="kpi-subtitle">Generated across campaigns</div>
+                </div>
+
+                <div class="kpi-card success">
+                    <div class="kpi-label">Avg Open Rate</div>
+                    <div class="kpi-value" id="avgOpenRate">0%</div>
+                    <div class="kpi-subtitle">Campaign engagement</div>
+                </div>
+
+                <div class="kpi-card warning clickable" onclick="window.location.href='replies_mydriveacademy.html'">
+                    <div class="kpi-label">Total Replied</div>
+                    <div class="kpi-value" id="totalReplied">0</div>
+                    <div class="kpi-subtitle">Customer responses (Click for details)</div>
+                </div>
+
+                <div class="kpi-card info">
+                    <div class="kpi-label">Total Clicked</div>
+                    <div class="kpi-value" id="totalClicked">0</div>
+                    <div class="kpi-subtitle">Link interactions</div>
+                </div>
+            </div>
+
+            <div class="charts-section">
+                <div class="chart-card full-width">
+                    <h3>Performance Over Time</h3>
+                    <div class="chart-container">
+                        <canvas id="performanceChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <h3>Leads by Campaign</h3>
+                    <div class="chart-container">
+                        <canvas id="industryChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <h3>Engagement Metrics</h3>
+                    <div class="chart-container">
+                        <canvas id="engagementChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Embedded data from Excel - Last updated: 2026-04-07
+        const allData = [
+            {"date": "2026-02-04", "industry": "MDA Chauffeur", "campaign": "Taxi/Limo Transportation", "leads": 153, "opened": 12, "clicked": 1, "replied": 0, "delivered": 153, "openRate": 0.0784},
+            {"date": "2026-02-06", "industry": "MDA Chauffeur", "campaign": "Uber", "leads": 119, "opened": 30, "clicked": 0, "replied": 0, "delivered": 119, "openRate": 0.2521},
+            {"date": "2026-02-09", "industry": "MDA Chauffeur", "campaign": "Taxi Leads", "leads": 110, "opened": 10, "clicked": 0, "replied": 0, "delivered": 110, "openRate": 0.0909},
+            {"date": "2026-02-09", "industry": "MDA Chauffeur", "campaign": "Taxi Leads", "leads": 52, "opened": 29, "clicked": 1, "replied": 0, "delivered": 52, "openRate": 0.5577},
+            {"date": "2026-02-12", "industry": "MDA Chauffeur", "campaign": "Tour", "leads": 77, "opened": 14, "clicked": 3, "replied": 0, "delivered": 77, "openRate": 0.1818},
+            {"date": "2026-02-19", "industry": "MDA Chauffeur", "campaign": "Taxi Limo Transportation", "leads": 115, "opened": 30, "clicked": 1, "replied": 0, "delivered": 115, "openRate": 0.2609},
+            {"date": "2026-02-20", "industry": "MDA Chauffeur", "campaign": "College Leads", "leads": 40, "opened": 3, "clicked": 0, "replied": 0, "delivered": 40, "openRate": 0.0750},
+            {"date": "2026-02-23", "industry": "MDA Chauffeur", "campaign": "College Leads", "leads": 40, "opened": 3, "clicked": 0, "replied": 0, "delivered": 40, "openRate": 0.0750},
+            {"date": "2026-02-24", "industry": "MDA Chauffeur", "campaign": "Taxi Limo Transportation", "leads": 125, "opened": 27, "clicked": 0, "replied": 0, "delivered": 125, "openRate": 0.2160},
+            {"date": "2026-03-03", "industry": "MDA Chauffeur", "campaign": "Taxi/Limo Transportation", "leads": 165, "opened": 41, "clicked": 4, "replied": 0, "delivered": 165, "openRate": 0.2485},
+            {"date": "2026-03-11", "industry": "MDA Chauffeur", "campaign": "Taxi/Limo Transportation", "leads": 165, "opened": 39, "clicked": 1, "replied": 0, "delivered": 165, "openRate": 0.2364},
+            {"date": "2026-03-18", "industry": "MDA Chauffeur", "campaign": "US Taxi Directory", "leads": 82, "opened": 7, "clicked": 0, "replied": 0, "delivered": 82, "openRate": 0.0854},
+            {"date": "2026-03-18", "industry": "MDA Chauffeur", "campaign": "Limo/Taxi", "leads": 76, "opened": 22, "clicked": 0, "replied": 0, "delivered": 76, "openRate": 0.2895},
+            {"date": "2026-03-24", "industry": "MDA Chauffeur", "campaign": "HAL/MDA/iDrivio Leads (re-assessment)", "leads": 44, "opened": 11, "clicked": 0, "replied": 0, "delivered": 44, "openRate": 0.2500},
+            {"date": "2026-04-01", "industry": "MDA Chauffeur", "campaign": "HAL/MDA/iDrivio Leads (re-assessment)", "leads": 94, "opened": 25, "clicked": 0, "replied": 0, "delivered": 94, "openRate": 0.2660},
+            {"date": "2026-04-02", "industry": "MDA Chauffeur", "campaign": "Transpo/Livery", "leads": 71, "opened": 23, "clicked": 0, "replied": 0, "delivered": 71, "openRate": 0.3239}
+        ];
+
+        // Replies data from MyDriveAcademyReplies.xlsx - 0 total replies (file is empty)
+        const repliesData = [];
+
+        let charts = {
+            performance: null,
+            industry: null,
+            engagement: null
+        };
+
+        // Initialize filters
+        function initializeFilters() {
+            const campaigns = [...new Set(allData.map(d => d.campaign))];
+            const dates = [...new Set(allData.map(d => d.date))].sort();
+
+            const campaignFilter = document.getElementById('campaignFilter');
+            const dateFilter = document.getElementById('dateFilter');
+
+            campaigns.forEach(campaign => {
+                const option = document.createElement('option');
+                option.value = campaign;
+                option.textContent = campaign;
+                campaignFilter.appendChild(option);
+            });
+
+            dates.forEach(date => {
+                const option = document.createElement('option');
+                option.value = date;
+                // Parse date manually to avoid timezone issues
+                const [year, month, day] = date.split('-');
+                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                option.textContent = `${months[parseInt(month) - 1]} ${parseInt(day)}, ${year}`;
+                dateFilter.appendChild(option);
+            });
+
+            campaignFilter.addEventListener('change', updateDashboard);
+            dateFilter.addEventListener('change', updateDashboard);
+        }
+
+        // Clear filters
+        function clearFilters() {
+            document.getElementById('campaignFilter').value = '';
+            document.getElementById('dateFilter').value = '';
+            updateDashboard();
+        }
+
+        // Get filtered data
+        function getFilteredData() {
+            const campaignFilter = document.getElementById('campaignFilter').value;
+            const dateFilter = document.getElementById('dateFilter').value;
+
+            return allData.filter(item => {
+                const matchesCampaign = !campaignFilter || item.campaign === campaignFilter;
+                const matchesDate = !dateFilter || item.date === dateFilter;
+                return matchesCampaign && matchesDate;
+            });
+        }
+
+        // Update dashboard
+        function updateDashboard() {
+            const data = getFilteredData();
+
+            // Calculate KPIs
+            const totalLeads = data.reduce((sum, row) => sum + row.leads, 0);
+            const avgOpenRate = data.length > 0 ? (data.reduce((sum, row) => sum + row.openRate, 0) / data.length * 100).toFixed(1) : 0;
+            const totalReplied = repliesData.length;
+            const totalClicked = data.reduce((sum, row) => sum + row.clicked, 0);
+
+            document.getElementById('totalLeads').textContent = totalLeads;
+            document.getElementById('avgOpenRate').textContent = avgOpenRate + '%';
+            document.getElementById('totalReplied').textContent = totalReplied;
+            document.getElementById('totalClicked').textContent = totalClicked;
+
+            // Update charts
+            updatePerformanceChart(data);
+            updateIndustryChart(data);
+            updateEngagementChart(data);
+        }
+
+        // Performance Over Time Chart
+        function updatePerformanceChart(data) {
+            const dates = [...new Set(data.map(d => d.date))].sort();
+            const dateData = dates.map(date => {
+                const dayData = data.filter(d => d.date === date);
+                return {
+                    date,
+                    leads: dayData.reduce((sum, d) => sum + d.leads, 0),
+                    opened: dayData.reduce((sum, d) => sum + d.opened, 0),
+                    clicked: dayData.reduce((sum, d) => sum + d.clicked, 0)
+                };
+            });
+
+            const ctx = document.getElementById('performanceChart');
+
+            if (charts.performance) {
+                charts.performance.destroy();
+            }
+
+            charts.performance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dateData.map(d => {
+                        // Parse date manually to avoid timezone issues
+                        const [year, month, day] = d.date.split('-');
+                        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                        return `${months[parseInt(month) - 1]} ${parseInt(day)}`;
+                    }),
+                    datasets: [
+                        {
+                            label: 'Leads Generated',
+                            data: dateData.map(d => d.leads),
+                            borderColor: '#3B82F6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'Emails Opened',
+                            data: dateData.map(d => d.opened),
+                            borderColor: '#10B981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'Links Clicked',
+                            data: dateData.map(d => d.clicked),
+                            borderColor: '#F43F5E',
+                            backgroundColor: 'rgba(244, 63, 94, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Campaign Chart
+        function updateIndustryChart(data) {
+            const industries = {};
+            data.forEach(row => {
+                let label = row.campaign;
+
+                industries[label] = (industries[label] || 0) + row.leads;
+            });
+
+            const ctx = document.getElementById('industryChart');
+
+            if (charts.industry) {
+                charts.industry.destroy();
+            }
+
+            charts.industry = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(industries),
+                    datasets: [{
+                        data: Object.values(industries),
+                        backgroundColor: [
+                            '#3B82F6',
+                            '#10B981',
+                            '#F43F5E',
+                            '#34d399',
+                            '#8B5CF6',
+                            '#059669',
+                            '#06b6d4',
+                            '#ec4899',
+                            '#6ee7b7',
+                            '#a855f7',
+                            '#047857',
+                            '#14b8a6',
+                            '#0d9488',
+                            '#2dd4bf',
+                            '#5eead4',
+                            '#99f6e4'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        }
+                    }
+                }
+            });
+        }
+
+        // Engagement Chart
+        function updateEngagementChart(data) {
+            const totalOpened = data.reduce((sum, row) => sum + row.opened, 0);
+            const totalClicked = data.reduce((sum, row) => sum + row.clicked, 0);
+            const totalReplied = repliesData.length;
+            const totalDelivered = data.reduce((sum, row) => sum + row.delivered, 0);
+
+            const ctx = document.getElementById('engagementChart');
+
+            if (charts.engagement) {
+                charts.engagement.destroy();
+            }
+
+            charts.engagement = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Opened', 'Replied', 'Clicked'],
+                    datasets: [{
+                        label: 'Count',
+                        data: [totalOpened, totalReplied, totalClicked],
+                        backgroundColor: [
+                            '#10B981',
+                            '#3B82F6',
+                            '#F43F5E'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                afterLabel: function(context) {
+                                    if (totalDelivered > 0) {
+                                        const percentage = ((context.parsed.y / totalDelivered) * 100).toFixed(2);
+                                        return percentage + '% of delivered';
+                                    }
+                                    return '';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initialize on page load
+        initializeFilters();
+        updateDashboard();
+    </script>
+</body>
+</html>
